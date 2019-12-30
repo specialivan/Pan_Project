@@ -2,9 +2,11 @@
 package handler
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 )
 
 //UploadHandler：处理文件上传
@@ -19,6 +21,30 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		io.WriteString(w, string(data))
 	} else if r.Method== "POST" {
+		file,head,err:=r.FormFile("file")
+		if err != nil{
+			fmt.Println("Failed to get data,err:%s\n",err.Error())
+			return
+		}
+		defer file.Close()
+		newFile,err:=os.Create("d:\123"+head.Filename)
+		if err != nil{
+			fmt.Println("Faile to create file,err:%s\n",err.Error())
+			return
+		}
+		defer newFile.Close()
 
+		_, err = io.Copy(newFile, file)
+			if err != nil{
+				fmt.Println("Failed to data into file,err:%s\n",err.Error())
+				return
+			}
+
+		http.Redirect(w,r,"/file/upload/suc",http.StatusFound)
 	}
+}
+
+//新建一个上传成功的跳转页面
+func UploadSucHandler(w http.ResponseWriter,r *http.Request){
+	io.WriteString(w ,"Upload Success!")
 }
