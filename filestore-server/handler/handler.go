@@ -1,3 +1,4 @@
+//处理上传接口
 package handler
 
 import (
@@ -7,16 +8,17 @@ import (
 )
 
 //UploadHandler：处理文件上传
-func UploadHandler(w http.ResponseWriter, r *http.Request) { //函数外部调用，需要大写开头
+//函数外部调用，需要大写开头
+//ResponseWriter用于向用户返回数据，Request用于接收用户请求对象指针
+func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		//返回上传html页面
-		data, err := ioutil.ReadFile("./statci/view/index.html")
+		data, err := ioutil.ReadFile("./filestore-server/static/view/index.html")
 		if err != nil {
-			io.WriteString(w, "internel server error1111")
+			io.WriteString(w, "internel server error")
 			return
 		}
 		io.WriteString(w, string(data))
-	} else if r.Method == "POST" {
-		//接收用户上传文件流并存储到本地目录
+	} else if r.Method== "POST" {
+
 	}
 }
