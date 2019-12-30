@@ -1,15 +1,15 @@
 package main
 
 import (
-	"filestore-server/handler"
+	"Pan_Project/filestore-server/handler"
 	"fmt"
 	"net/http"
 )
 
 func main() {
-	http.HandleFunc("/file/upload", handler.UploadHandler) //路由规则
+	http.HandleFunc("/file/upload", handler.UploadHandler)
 	err := http.ListenAndServe(":8888", nil)
 	if err != nil {
 		fmt.Println("File to start server,err:%s", err.Error())
-	}
+		}
 }
