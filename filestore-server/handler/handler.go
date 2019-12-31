@@ -2,11 +2,15 @@
 package handler
 
 import (
+	"Pan_Project/filestore-server/meta"
+	"Pan_Project/filestore-server/util"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"time"
 )
 
 //UploadHandler：处理文件上传
@@ -27,19 +31,28 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		defer file.Close()
-		newFile,err:=os.Create("d:\123"+head.Filename)
+
+		fileMeta := meta.FileMeta{
+			FileName:head.Filename,
+			Location:"d:\123"+head.Filename,
+			UploadAt:time.Now().Format("2006-01-02 15:04:05"),
+		}
+
+		newFile,err:=os.Create(fileMeta.Location)
 		if err != nil{
 			fmt.Println("Faile to create file,err:%s\n",err.Error())
 			return
 		}
 		defer newFile.Close()
 
-		_, err = io.Copy(newFile, file)
+		fileMeta.FileSize, err = io.Copy(newFile, file)
 			if err != nil{
 				fmt.Println("Failed to data into file,err:%s\n",err.Error())
 				return
 			}
-
+		newFile.Seek(0,0)
+		fileMeta.FileSha1 =util.FileSha1(newFile)
+		meta.UpdateFileMeta(fileMeta)
 		http.Redirect(w,r,"/file/upload/suc",http.StatusFound)
 	}
 }
@@ -47,4 +60,19 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 //新建一个上传成功的跳转页面
 func UploadSucHandler(w http.ResponseWriter,r *http.Request){
 	io.WriteString(w ,"Upload Success!")
+}
+
+// GetFileMetaHandler:获取文件源信息
+func GetFileMetaHandler(w http.ResponseWriter,r *http.Request){
+	r.ParseForm()
+
+	filehash := r.Form["filehash"][0]
+	fMeta := meta.GetFileMeta(filehash)
+	data,err := json.Marshal(fMeta)
+	if err != nil{
+		//结构体转换到json过程失败
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Write(data)
 }
